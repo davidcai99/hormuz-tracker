@@ -1,15 +1,30 @@
 import sqlite3
+import os
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-DATABASE_PATH = '../database/ships.db'
+# Use /var/data for persistent storage on Render, fallback to local
+RENDER_DISK_PATH = '/var/data'
+LOCAL_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'database', 'ships.db')
+
+if os.path.exists(RENDER_DISK_PATH) and os.access(RENDER_DISK_PATH, os.W_OK):
+    DATABASE_PATH = os.path.join(RENDER_DISK_PATH, 'ships.db')
+else:
+    DATABASE_PATH = LOCAL_DB_PATH
+    os.makedirs(os.path.dirname(LOCAL_DB_PATH), exist_ok=True)
 
 def get_db():
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
     conn = get_db()
     cursor = conn.cursor()
     
