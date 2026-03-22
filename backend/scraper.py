@@ -213,8 +213,8 @@ def generate_realistic_data():
     
     insert_ship_data(
         date=str(today),
-        passed_count=passed,
-        pending_count=pending,
+        passed=passed,
+        pending=pending,
         source=source
     )
     
