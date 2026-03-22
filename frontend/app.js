@@ -1,0 +1,250 @@
+// 霍尔木兹海峡船只追踪器 - 前端脚本
+
+let comparisonChart = null;
+let historyChart = null;
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    loadLatestData();
+    loadHistoryData();
+    loadStats();
+    
+    // 每30秒自动刷新
+    setInterval(() => {
+        loadLatestData();
+        loadStats();
+    }, 30000);
+});
+
+// 加载最新数据
+async function loadLatestData() {
+    try {
+        const response = await fetch('/api/latest');
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            document.getElementById('passedCount').textContent = data.passed_count;
+            document.getElementById('pendingCount').textContent = data.pending_count;
+            document.getElementById('lastUpdate').textContent = new Date(data.date).toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            updateComparisonChart(data.passed_count, data.pending_count);
+        }
+    } catch (error) {
+        console.error('Error loading latest data:', error);
+    }
+}
+
+// 加载历史数据
+async function loadHistoryData() {
+    try {
+        const response = await fetch('/api/history?days=14');
+        const result = await response.json();
+        
+        if (result.success) {
+            updateHistoryChart(result.data.reverse());
+        }
+    } catch (error) {
+        console.error('Error loading history data:', error);
+    }
+}
+
+// 加载统计
+async function loadStats() {
+    try {
+        const response = await fetch('/api/stats');
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('totalViews').textContent = result.data.total_views;
+            document.getElementById('uniqueVisitors').textContent = result.data.unique_visitors;
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+// 更新对比图表
+function updateComparisonChart(passed, pending) {
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    
+    if (comparisonChart) {
+        comparisonChart.data.datasets[0].data = [passed, pending];
+        comparisonChart.update();
+    } else {
+        comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['已通过', '待通过'],
+                datasets: [{
+                    label: '船只数量',
+                    data: [passed, pending],
+                    backgroundColor: [
+                        'rgba(0, 255, 136, 0.7)',
+                        'rgba(255, 217, 61, 0.7)'
+                    ],
+                    borderColor: [
+                        '#00ff88',
+                        '#ffd93d'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#8892b0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#ccd6f6',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// 更新历史趋势图
+function updateHistoryChart(historyData) {
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    
+    const labels = historyData.map(d => {
+        const date = new Date(d.date);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    });
+    
+    const passedData = historyData.map(d => d.passed_count);
+    const pendingData = historyData.map(d => d.pending_count);
+    
+    if (historyChart) {
+        historyChart.destroy();
+    }
+    
+    historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '已通过',
+                    data: passedData,
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: '待通过',
+                    data: pendingData,
+                    borderColor: '#ffd93d',
+                    backgroundColor: 'rgba(255, 217, 61, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ccd6f6',
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#8892b0'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: '#8892b0'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 手动刷新数据
+async function refreshData() {
+    const btn = document.querySelector('.refresh-btn');
+    btn.textContent = '⏳ 刷新中...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/refresh', { method: 'POST' });
+        const result = await response.json();
+        
+        if (result.success) {
+            await loadLatestData();
+            await loadHistoryData();
+            await loadStats();
+        }
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+    } finally {
+        btn.textContent = '🔄 刷新数据';
+        btn.disabled = false;
+    }
+}

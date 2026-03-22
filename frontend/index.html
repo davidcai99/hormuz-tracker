@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>霍尔木兹海峡船只追踪器</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏛️ 霍尔木兹海峡船只追踪器</h1>
+            <p class="subtitle">Hormuz Strait Vessel Tracker</p>
+            <p class="update-time">数据更新时间: <span id="lastUpdate">加载中...</span></p>
+            <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+        </header>
+
+        <main>
+            <!-- 实时数据卡片 -->
+            <section class="cards-container">
+                <div class="card passed">
+                    <div class="card-icon">✅</div>
+                    <div class="card-title">已通过船只</div>
+                    <div class="card-value" id="passedCount">--</div>
+                    <div class="card-unit">艘</div>
+                </div>
+                <div class="card pending">
+                    <div class="card-icon">⏳</div>
+                    <div class="card-title">待通过船只</div>
+                    <div class="card-value" id="pendingCount">--</div>
+                    <div class="card-unit">艘</div>
+                </div>
+            </section>
+
+            <!-- 对比图表 -->
+            <section class="chart-section">
+                <h2>📊 实时数据对比</h2>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </section>
+
+            <!-- 历史趋势图 -->
+            <section class="chart-section">
+                <h2>📈 历史趋势</h2>
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </section>
+
+            <!-- 访问统计 -->
+            <section class="stats-section">
+                <h2>👥 访问统计</h2>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalViews">--</div>
+                        <div class="stat-label">总访问次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uniqueVisitors">--</div>
+                        <div class="stat-label">独立访客数</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>数据来源: EIA 能源数据 / 新闻媒体抓取 | 每6小时自动更新</p>
+            <p>本页面仅供学习研究使用</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
