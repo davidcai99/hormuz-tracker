@@ -26,7 +26,7 @@ def scrape_reuters():
         response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'lxml')
+            soup = BeautifulSoup(response.content, 'html.parser')
             articles = []
             
             # 查找新闻条目
@@ -59,7 +59,7 @@ def scrape_maritime_executive():
         response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'lxml')
+            soup = BeautifulSoup(response.content, 'html.parser')
             articles = []
             
             for item in soup.find_all('h2', class_='article-list-title', limit=10):
@@ -89,7 +89,7 @@ def scrape_oil_price():
         response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'lxml')
+            soup = BeautifulSoup(response.content, 'html.parser')
             text = soup.get_text()
             
             # 尝试找价格数据
@@ -115,7 +115,7 @@ def scrape_tanker_trackers():
         url = 'https://www.vesselfinder.com/news'
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'lxml')
+            soup = BeautifulSoup(response.content, 'html.parser')
             # 查找相关文章
             for h3 in soup.find_all('h3', limit=5):
                 title = h3.get_text(strip=True)
@@ -147,7 +147,7 @@ def parse_article_for_ship_count(articles):
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(article['url'], headers=headers, timeout=10)
             if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'lxml')
+                soup = BeautifulSoup(response.content, 'html.parser')
                 text = soup.get_text()
                 
                 for pattern in patterns:
