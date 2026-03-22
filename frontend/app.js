@@ -5,7 +5,7 @@ let historyChart = null;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
-    loadLatestData();
+    setTimeout(loadLatestData, 1000); // 延迟1秒确保页面先加载
     loadHistoryData();
     loadStats();
     
@@ -20,23 +20,31 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadLatestData() {
     try {
         const response = await fetch('/api/latest');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
         
         if (result.success) {
             const data = result.data;
             
-            document.getElementById('passedCount').textContent = data.passed_count;
-            document.getElementById('pendingCount').textContent = data.pending_count;
-            document.getElementById('lastUpdate').textContent = new Date(data.date).toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            document.getElementById('passedCount').textContent = data.passed_count ?? '--';
+            document.getElementById('pendingCount').textContent = data.pending_count ?? '--';
+            document.getElementById('lastUpdate').textContent = data.date 
+                ? new Date(data.date).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })
+                : '暂无数据';
             
-            updateComparisonChart(data.passed_count, data.pending_count);
+            if (data.passed_count != null && data.pending_count != null) {
+                updateComparisonChart(data.passed_count, data.pending_count);
+            }
+        } else {
+            document.getElementById('lastUpdate').textContent = '数据加载失败';
         }
     } catch (error) {
         console.error('Error loading latest data:', error);
+        document.getElementById('lastUpdate').textContent = '网络错误，请刷新重试';
     }
 }
 
@@ -46,7 +54,7 @@ async function loadHistoryData() {
         const response = await fetch('/api/history?days=14');
         const result = await response.json();
         
-        if (result.success) {
+        if (result.success && result.data.length > 0) {
             updateHistoryChart(result.data.reverse());
         }
     } catch (error) {
