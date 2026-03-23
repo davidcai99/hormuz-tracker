@@ -109,14 +109,16 @@ def record_visit(ip_address: str, user_agent: str = ''):
     conn.close()
 
 def get_total_views() -> int:
+    """返回总浏览次数（不去重）"""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(DISTINCT ip_address) FROM page_views')
+    cursor.execute('SELECT COUNT(*) FROM page_views')
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else 0
 
 def get_unique_visitors() -> int:
+    """返回独立访客数（去重）"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('SELECT COUNT(DISTINCT ip_address) FROM page_views')

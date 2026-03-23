@@ -3,23 +3,49 @@
 let comparisonChart = null;
 let historyChart = null;
 
+// 检查服务是否已唤醒
+async function waitForService(maxRetries = 15, interval = 1000) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch('/api/stats', { 
+                signal: AbortSignal.timeout(5000)
+            });
+            if (response.ok) return true;
+        } catch (e) {
+            // 服务还在唤醒中，等待...
+        }
+        await new Promise(r => setTimeout(r, interval));
+    }
+    return false;
+}
+
 // 初始化
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(loadLatestData, 1000); // 延迟1秒确保页面先加载
-    loadHistoryData();
-    loadStats();
+document.addEventListener('DOMContentLoaded', async () => {
+    // 先等待服务唤醒（Render免费版会休眠）
+    document.getElementById('lastUpdate').textContent = '服务唤醒中，请稍候...';
+    const isReady = await waitForService();
     
-    // 每30秒自动刷新
-    setInterval(() => {
+    if (isReady) {
         loadLatestData();
+        loadHistoryData();
         loadStats();
-    }, 30000);
+        
+        // 每30秒自动刷新
+        setInterval(() => {
+            loadLatestData();
+            loadStats();
+        }, 30000);
+    } else {
+        document.getElementById('lastUpdate').textContent = '服务唤醒超时，请刷新重试';
+    }
 });
 
 // 加载最新数据
 async function loadLatestData() {
     try {
-        const response = await fetch('/api/latest');
+        const response = await fetch('/api/latest', {
+            signal: AbortSignal.timeout(15000)
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
         
@@ -51,7 +77,9 @@ async function loadLatestData() {
 // 加载历史数据
 async function loadHistoryData() {
     try {
-        const response = await fetch('/api/history?days=14');
+        const response = await fetch('/api/history?days=14', {
+            signal: AbortSignal.timeout(15000)
+        });
         const result = await response.json();
         
         if (result.success && result.data.length > 0) {
@@ -65,7 +93,9 @@ async function loadHistoryData() {
 // 加载统计
 async function loadStats() {
     try {
-        const response = await fetch('/api/stats');
+        const response = await fetch('/api/stats', {
+            signal: AbortSignal.timeout(15000)
+        });
         const result = await response.json();
         
         if (result.success) {
@@ -241,7 +271,10 @@ async function refreshData() {
     btn.disabled = true;
     
     try {
-        const response = await fetch('/api/refresh', { method: 'POST' });
+        const response = await fetch('/api/refresh', { 
+            method: 'POST',
+            signal: AbortSignal.timeout(30000)
+        });
         const result = await response.json();
         
         if (result.success) {
