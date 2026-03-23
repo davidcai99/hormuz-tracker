@@ -4,11 +4,11 @@ let comparisonChart = null;
 let historyChart = null;
 
 // 检查服务是否已唤醒
-async function waitForService(maxRetries = 15, interval = 1000) {
+async function waitForService(maxRetries = 30, interval = 1000) {
     for (let i = 0; i < maxRetries; i++) {
         try {
             const response = await fetch('/api/stats', { 
-                signal: AbortSignal.timeout(5000)
+                signal: AbortSignal.timeout(8000)
             });
             if (response.ok) return true;
         } catch (e) {
