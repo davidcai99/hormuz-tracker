@@ -22,8 +22,9 @@ scheduler.add_job(func=fetch_and_update_data, trigger='interval', hours=6, id='f
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
-# 首次启动时获取数据
-fetch_and_update_data()
+# 首次启动时后台获取数据（不阻塞服务启动）
+import threading
+threading.Thread(target=fetch_and_update_data, daemon=True).start()
 
 @app.route('/')
 def index():
