@@ -70,6 +70,29 @@ def api_stats():
         }
     })
 
+@app.route('/api/stats/range')
+def api_stats_range():
+    """获取指定日期范围的船只统计数据"""
+    days = request.args.get('days', 30, type=int)
+    from datetime import datetime, timedelta
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=days)
+    
+    stats = models.get_stats_by_date_range(str(start_date), str(end_date))
+    return jsonify({
+        'success': True,
+        'data': stats
+    })
+
+@app.route('/api/sources')
+def api_sources():
+    """获取数据来源状态"""
+    sources = models.get_data_sources_status()
+    return jsonify({
+        'success': True,
+        'data': sources
+    })
+
 @app.route('/api/refresh', methods=['POST'])
 def api_refresh():
     """手动触发数据更新"""
